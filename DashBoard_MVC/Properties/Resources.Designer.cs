@@ -63,9 +63,9 @@ namespace DashBoard_MVC.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Integrated Security=SSPI;Persist Security Info=False;User ID=&quot;&quot;;Initial Catalog=OmHonda;Data Source=DESKTOP-2EIEL7P\SQLEXPRESS;Initial File Name=&quot;&quot;;.
         /// </summary>
-        internal static string ConnectionString {
+        internal static string ConnectionString1 {
             get {
-                return ResourceManager.GetString("ConnectionString", resourceCulture);
+                return ResourceManager.GetString("ConnectionString1", resourceCulture);
             }
         }
     }

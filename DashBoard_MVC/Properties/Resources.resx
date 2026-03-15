@@ -117,7 +117,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ConnectionString" xml:space="preserve">
+  <data name="ConnectionString1" xml:space="preserve">
     <value>Integrated Security=SSPI;Persist Security Info=False;User ID="";Initial Catalog=OmHonda;Data Source=DESKTOP-2EIEL7P\SQLEXPRESS;Initial File Name="";</value>
   </data>
 </root>

@@ -6,6 +6,7 @@ using System.Web.Mvc;
 using System.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using DashBoard_MVC.Models;
+using System.Configuration;
 
 
 namespace DashBoard_MVC.Controllers
@@ -24,7 +25,8 @@ namespace DashBoard_MVC.Controllers
         public HomeController(ILogger<HomeController> logger)
         { 
             _logger = logger;
-            scon.ConnectionString = DashBoard_MVC.Properties.Resources.ConnectionString.ToString();
+            //scon.ConnectionString = DashBoard_MVC.Properties.Resources.ConnectionString.ToString();
+            scon.ConnectionString = ConfigurationManager.ConnectionStrings["DBConn"].ConnectionString;
         }
 
         [HttpGet]
@@ -53,7 +55,7 @@ namespace DashBoard_MVC.Controllers
             List<Insurance> list = new List<Insurance>();
             try
             {
-                scon.ConnectionString = DashBoard_MVC.Properties.Resources.ConnectionString.ToString();
+                scon.ConnectionString = DashBoard_MVC.Properties.Resources.ConnectionString1.ToString();
                 scon.Open();
                 scmd.Connection = scon;
 
@@ -88,7 +90,7 @@ namespace DashBoard_MVC.Controllers
             try
             {
                 //name = "naval";
-                scon.ConnectionString = DashBoard_MVC.Properties.Resources.ConnectionString.ToString();
+                scon.ConnectionString = DashBoard_MVC.Properties.Resources.ConnectionString1.ToString();
                 scon.Open();
                 scmd.Connection = scon;
 
@@ -120,7 +122,7 @@ namespace DashBoard_MVC.Controllers
         {
             try
             {
-                scon.ConnectionString = DashBoard_MVC.Properties.Resources.ConnectionString.ToString();
+                scon.ConnectionString = DashBoard_MVC.Properties.Resources.ConnectionString1.ToString();
                 scon.Open();
                 scmd.Connection = scon;
                 
