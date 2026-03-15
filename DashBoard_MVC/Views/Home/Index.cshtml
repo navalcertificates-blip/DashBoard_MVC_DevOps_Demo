@@ -1,0 +1,61 @@
+﻿@model List<DashBoard_MVC.Models.Insurance>
+
+@using (Html.BeginForm("Index", "Home", FormMethod.Post))
+{
+    <input type="text" name="name" placeholder="Search By Name" />
+    <input type="submit" value="Search" />
+}
+
+@{ 
+    string[] TableHeaders = new string[] {
+            "Customer Name",
+            "Address",
+            "Phone No",
+            "Vehicle No"
+        };
+}
+
+
+<br />
+
+<div class="table">
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                @{
+                    foreach (var head in TableHeaders)
+                    {
+                        <th>
+                            @head
+                        </th>
+                    }
+                }
+            </tr>
+        </thead>
+        @{
+            if (Model != null)
+            {
+                foreach (var data in Model)
+                {
+                    <tr>
+                        <td>
+                            @data.CustomerName
+                        </td>
+                        <td>
+                            @data.Address
+                        </td>
+                        <td>
+                            @data.PhoneNo
+                        </td>
+                        <td>
+                            @data.VehicleNo
+                        </td>
+                    </tr>
+                }
+            }
+        }
+
+        <tbody>
+        </tbody>
+    </table>
+</div>
