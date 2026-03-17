@@ -11,12 +11,10 @@ pool:
   name: 'DevOps'
 
 
-
 variables:
-- group: DeployGroup
-  # solution: '**/*.sln'
-  # buildPlatform: 'Any CPU'
-  # buildConfiguration: 'Release'
+   solution: '**/*.sln'
+   buildPlatform: 'Any CPU'
+   buildConfiguration: 'Release'
 
 
 steps:
