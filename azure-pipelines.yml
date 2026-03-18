@@ -33,7 +33,7 @@ steps:
 
 - task: CopyFiles@2
   inputs:
-    SourceFolder: '$(Build.ArtifactStagingDirectory)\DashBoard_MVC'
+    SourceFolder: 'C:\Users\vmuser1\Documents\Naval\Build\_work\1\s\DashBoard_MVC'
     Contents: '**\*'
     TargetFolder: 'C:\Users\vmuser1\Documents\Naval\app.publish'
     OverWrite: true
