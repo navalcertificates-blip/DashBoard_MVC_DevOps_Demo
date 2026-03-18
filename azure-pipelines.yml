@@ -33,9 +33,11 @@ steps:
 
 - task: CopyFiles@2
   inputs:
-    SourceFolder: '$(Build.ArtifactStagingDirectory)'
+    SourceFolder: '$(Build.ArtifactStagingDirectory)\DashBoard_MVC'
     Contents: '**\*'
     TargetFolder: 'C:\Users\vmuser1\Documents\Naval\app.publish'
+    OverWrite: true
+    CleanTargetFolder: true
 
 - task: VSTest@2
   inputs:
