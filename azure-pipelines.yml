@@ -17,7 +17,7 @@ pool:
 
 stages:
 - stage: Build
-  displayName: 'Build'
+  displayName: 'VS Build'
   jobs:
   - job: BuildJob
     steps:
@@ -32,6 +32,11 @@ stages:
         msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:DesktopBuildPackageLocation="$(build.artifactStagingDirectory)\WebApp.zip" /p:DeployIisAppPath="Default Web Site"'
         platform: '$(buildPlatform)'
         configuration: '$(buildConfiguration)'
+      
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish artifact'
+      inputs:
+        targetPath: 'C:\Users\vmuser1\Documents\Naval\Publish'
 
     # - task: CopyFiles@2
     #   inputs:
@@ -60,9 +65,14 @@ stages:
      runOnce:
        deploy:
          steps:
-          - task: IISWebAppManagementOnMachineGroup@0
-            displayName: 'Deploy to Stage Environment'
-            inputs:            
+         - task: DownloadPipelineArtifact@2
+           displayName: 'Download artifact'
+           inputs:
+             targetPath: 'C:\Users\vmuser1\Documents\Naval\app.publish'
+          
+         - task: IISWebAppManagementOnMachineGroup@0
+           displayName: 'Deploy to Stage Environment'
+           inputs:            
               WebsiteName: 'MyWeb'  
               AppPoolName: 'MyWeb'
               IISDeploymentType: 'IISApplicationPool'
