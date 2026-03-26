@@ -9,7 +9,6 @@ trigger:
 variables:
 - group: DeployGroup
 
-
 pool:
   vmImage: windows-latest
   name: 'MyLearning'
@@ -37,16 +36,8 @@ stages:
       displayName: 'Publish artifact'
       inputs:
         targetPath: 'C:\Users\vmuser1\Documents\Naval\Publish'
-        artifact: $(artifactName)
 
-    # - task: CopyFiles@2
-    #   inputs:
-    #     SourceFolder: 'C:\Users\vmuser1\Documents\Naval\Build\1\s\DashBoard_MVC'
-    #     Contents: '**\*'
-    #     TargetFolder: 'C:\Users\vmuser1\Documents\Naval\app.publish'
-    #     OverWrite: true
-    #     CleanTargetFolder: true
-
+   
     - task: VSTest@2
       inputs:
         platform: '$(buildPlatform)'
@@ -66,14 +57,17 @@ stages:
      runOnce:
        deploy:
          steps:
-         - task: DownloadPipelineArtifact@2
-           displayName: 'Download artifact'
-           inputs:
-             targetPath: 'C:\Users\vmuser1\Documents\Naval\app.publish'
+          - task: CopyFiles@2
+            inputs:
+             SourceFolder: 'C:\Users\vmuser1\Documents\Naval\Build\1\s\DashBoard_MVC'
+             Contents: '**\*'
+             TargetFolder: 'C:\Users\vmuser1\Documents\Naval\Publish'
+             OverWrite: true
+             CleanTargetFolder: true
           
-         - task: IISWebAppManagementOnMachineGroup@0
-           displayName: 'Deploy to Stage Environment'
-           inputs:            
+          - task: IISWebAppManagementOnMachineGroup@0
+            displayName: 'Deploy to Stage Environment'
+            inputs:            
               WebsiteName: 'MyWeb'  
               AppPoolName: 'MyWeb'
               IISDeploymentType: 'IISApplicationPool'
