@@ -37,6 +37,7 @@ stages:
       displayName: 'Publish artifact'
       inputs:
         targetPath: 'C:\Users\vmuser1\Documents\Naval\Publish'
+        artifact: $(artifactName)
 
     # - task: CopyFiles@2
     #   inputs:
