@@ -17,7 +17,7 @@ pool:
 
 stages:
 - stage: Build
-  displayName: 'Build and publish'
+  displayName: 'Build'
   jobs:
   - job: BuildJob
     steps:
@@ -33,13 +33,13 @@ stages:
         platform: '$(buildPlatform)'
         configuration: '$(buildConfiguration)'
 
-    - task: CopyFiles@2
-      inputs:
-        SourceFolder: 'C:\Users\vmuser1\Documents\Naval\Build\1\s\DashBoard_MVC'
-        Contents: '**\*'
-        TargetFolder: 'C:\Users\vmuser1\Documents\Naval\app.publish'
-        OverWrite: true
-        CleanTargetFolder: true
+    # - task: CopyFiles@2
+    #   inputs:
+    #     SourceFolder: 'C:\Users\vmuser1\Documents\Naval\Build\1\s\DashBoard_MVC'
+    #     Contents: '**\*'
+    #     TargetFolder: 'C:\Users\vmuser1\Documents\Naval\app.publish'
+    #     OverWrite: true
+    #     CleanTargetFolder: true
 
     - task: VSTest@2
       inputs:
