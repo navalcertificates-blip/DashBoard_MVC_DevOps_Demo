@@ -35,7 +35,7 @@ stages:
     - task: PublishPipelineArtifact@1
       displayName: 'Publish artifact'
       inputs:
-        targetPath: 'C:\Users\ykadmin\Documents\Naval\Publish'
+        targetPath: 'C:\Users\vmuser1\Documents\Naval\Publish'
 
    
     - task: VSTest@2
@@ -59,9 +59,9 @@ stages:
          steps:
           - task: CopyFiles@2
             inputs:
-             SourceFolder: 'C:\Users\ykadmin\Documents\Naval\Build\1\s\DashBoard_MVC'
+             SourceFolder: 'C:\Users\vmuser1\Documents\Naval\Build\1\s\DashBoard_MVC'
              Contents: '**\*'
-             TargetFolder: 'C:\Users\ykadmin\Documents\Naval\Publish'
+             TargetFolder: 'C:\Users\vmuser1\Documents\Naval\Publish'
              OverWrite: true
              CleanTargetFolder: true
           
@@ -73,4 +73,4 @@ stages:
               IISDeploymentType: 'IISApplicationPool'
               ActionIISApplicationPool: 'RecycleAppPool'
               StartStopRecycleAppPoolName: 'MyWeb'
-              VirtualPathForApplication: 'C:\Users\ykadmin\Documents\Naval\app.publish'
+              VirtualPathForApplication: 'C:\Users\vmuser1\Documents\Naval\app.publish'
