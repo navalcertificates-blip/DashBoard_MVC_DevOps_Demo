@@ -61,7 +61,7 @@ stages:
             inputs:
              SourceFolder: 'C:\Users\vmuser1\Documents\Naval\Build\1\s\DashBoard_MVC'
              Contents: '**\*'
-             TargetFolder: 'C:\Users\vmuser1\Documents\Naval\Publish'
+             TargetFolder: 'C:\Users\vmuser1\Documents\Naval\app.publish'
              OverWrite: true
              CleanTargetFolder: true
           
