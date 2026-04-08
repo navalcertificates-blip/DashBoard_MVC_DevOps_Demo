@@ -74,4 +74,7 @@ stages:
               ActionIISApplicationPool: 'RecycleAppPool'
               StartStopRecycleAppPoolName: 'MyWeb'
               WebsitePhysicalPath: '$(deploypath)'
-
+          - task: IISWebAppDeploymentOnMachineGroup@0
+            displayName: 'Deploy app files'
+            inputs:
+              WebSiteName: 'MyWeb'
