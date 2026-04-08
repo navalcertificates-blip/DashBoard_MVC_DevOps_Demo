@@ -73,4 +73,5 @@ stages:
               IISDeploymentType: 'IISApplicationPool'
               ActionIISApplicationPool: 'RecycleAppPool'
               StartStopRecycleAppPoolName: 'MyWeb'
-              VirtualPathForApplication: 'C:\Users\vmuser1\Documents\Naval\app.publish'
+              WebsitePhysicalPath: '$(deploypath)'
+
