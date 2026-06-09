@@ -1,0 +1,110 @@
+# Azure DevOps CI Build Pipeline - "Code"
+# Mirrors: jldwbo / JLD / Pipelines / Builds / Code
+# Build naming: Auto-{date}-{branchCode}.{rev} | OR-N_RC1.x-{date}-{branchCode}.{rev}
+# Agent pool: WBO
+
+trigger:
+  branches:
+    include:
+      - release/2019/*
+      - release/2018/*
+      - master
+  paths:
+    exclude:
+      - '**/*.md'
+
+pool:
+  name: WBO
+
+variables:
+  BuildConfiguration: Release
+  ArtifactName: Code
+
+name: Auto-$(Date:yyMMdd)-$(BranchCode).$(Rev:.r)
+
+stages:
+
+  # ──────────────────────────────────────────────
+  # STAGE 1 — Build & Test
+  # ──────────────────────────────────────────────
+  - stage: Build
+    displayName: Build & Test
+    jobs:
+      - job: BuildJob
+        displayName: Build Solution
+        steps:
+
+          - checkout: self
+            fetchDepth: 0
+
+          # Restore NuGet packages
+          - task: NuGetToolInstaller@1
+            displayName: Install NuGet
+
+          - task: NuGetCommand@2
+            displayName: Restore NuGet packages
+            inputs:
+              restoreSolution: '**/*.sln'
+
+          # Build solution
+          - task: VSBuild@1
+            displayName: Build solution
+            inputs:
+              solution: '**/*.sln'
+              platform: 'Any CPU'
+              configuration: $(BuildConfiguration)
+              msbuildArgs: '/p:DeployOnBuild=false'
+
+          # Run unit tests
+          - task: VSTest@2
+            displayName: Run unit tests
+            inputs:
+              testSelector: testAssemblies
+              testAssemblyVer2: |
+                **\*Test*.dll
+                !**\obj\**
+              configuration: $(BuildConfiguration)
+              codeCoverageEnabled: true
+
+          # Copy build artifacts
+          - task: CopyFiles@2
+            displayName: Copy artifacts to staging
+            inputs:
+              SourceFolder: '$(Build.SourcesDirectory)'
+              Contents: |
+                **\bin\$(BuildConfiguration)\**
+                **\*.dacpac
+              TargetFolder: '$(Build.ArtifactStagingDirectory)\$(ArtifactName)'
+
+          # Publish Code artifact
+          - task: PublishBuildArtifacts@1
+            displayName: Publish Code artifact
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)\$(ArtifactName)'
+              ArtifactName: $(ArtifactName)
+              publishLocation: Container
+
+  # ──────────────────────────────────────────────
+  # STAGE 2 — Publish SSDT / SQL artifact
+  # ──────────────────────────────────────────────
+  - stage: PublishSQL
+    displayName: Publish SQL Artifact
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - job: SQLJob
+        displayName: Package SQL / SSDT
+        steps:
+          - task: CopyFiles@2
+            displayName: Stage DACPAC files
+            inputs:
+              SourceFolder: '$(Build.SourcesDirectory)'
+              Contents: '**\*.dacpac'
+              TargetFolder: '$(Build.ArtifactStagingDirectory)\SQL'
+
+          - task: PublishBuildArtifacts@1
+            displayName: Publish SQL artifact
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)\SQL'
+              ArtifactName: SQL
+              publishLocation: Container

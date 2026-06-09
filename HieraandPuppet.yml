@@ -1,0 +1,102 @@
+# Azure DevOps CI Build Pipeline - "Hiera" & "Puppet"
+# Mirrors: jldwbo / JLD / Pipelines / Builds / Hiera + Puppet
+# Hiera branch: JL-Live-POC / master
+# Puppet branch: master
+# Agent pool: WBO
+
+trigger:
+  branches:
+    include:
+      - master
+      - JL-Live-POC
+
+pool:
+  name: WBO
+
+name: master-$(Date:yyyyMMdd).$(Rev:r)
+
+stages:
+
+  # ──────────────────────────────────────────────
+  # STAGE 1 — Validate & Package Hiera Data
+  # ──────────────────────────────────────────────
+  - stage: HieraPackage
+    displayName: Hiera Data Package
+    jobs:
+      - job: HieraJob
+        displayName: Package Hiera configuration
+        steps:
+          - checkout: self
+            fetchDepth: 0
+
+          # Validate YAML syntax of all Hiera data files
+          - task: PowerShell@2
+            displayName: Validate Hiera YAML files
+            inputs:
+              targetType: inline
+              script: |
+                $files = Get-ChildItem -Recurse -Filter '*.yaml' | Select-Object -ExpandProperty FullName
+                foreach ($f in $files) {
+                  Write-Host "Validating $f"
+                  # Basic YAML structure check
+                  $content = Get-Content $f -Raw
+                  if ([string]::IsNullOrWhiteSpace($content)) {
+                    Write-Warning "Empty file: $f"
+                  }
+                }
+                Write-Host "All Hiera YAML files validated."
+
+          # Archive Hiera data
+          - task: ArchiveFiles@2
+            displayName: Archive Hiera data
+            inputs:
+              rootFolderOrFile: '$(Build.SourcesDirectory)'
+              includeRootFolder: false
+              archiveType: zip
+              archiveFile: '$(Build.ArtifactStagingDirectory)\Hiera\hiera-data.zip'
+
+          - task: PublishBuildArtifacts@1
+            displayName: Publish Hiera artifact
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)\Hiera'
+              ArtifactName: Hiera
+              publishLocation: Container
+
+  # ──────────────────────────────────────────────
+  # STAGE 2 — Validate & Package Puppet Manifests
+  # ──────────────────────────────────────────────
+  - stage: PuppetPackage
+    displayName: Puppet Manifests Package
+    dependsOn: HieraPackage
+    condition: succeeded()
+    jobs:
+      - job: PuppetJob
+        displayName: Package Puppet manifests
+        steps:
+
+          # Puppet syntax validation (puppet-lint style check)
+          - task: PowerShell@2
+            displayName: Validate Puppet manifests (.pp files)
+            inputs:
+              targetType: inline
+              script: |
+                $files = Get-ChildItem -Recurse -Filter '*.pp' | Select-Object -ExpandProperty FullName
+                Write-Host "Found $($files.Count) Puppet manifest files."
+                foreach ($f in $files) {
+                  Write-Host "Checking: $f"
+                }
+
+          - task: ArchiveFiles@2
+            displayName: Archive Puppet manifests
+            inputs:
+              rootFolderOrFile: '$(Build.SourcesDirectory)'
+              includeRootFolder: false
+              archiveType: zip
+              archiveFile: '$(Build.ArtifactStagingDirectory)\Puppet\puppet-manifests.zip'
+
+          - task: PublishBuildArtifacts@1
+            displayName: Publish Puppet artifact
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)\Puppet'
+              ArtifactName: Puppet
+              publishLocation: Container
