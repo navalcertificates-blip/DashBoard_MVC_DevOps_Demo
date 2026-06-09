@@ -1,0 +1,73 @@
+# Azure DevOps CI Build Pipeline - "SSDT_Upgrade" & "SQL"
+# Mirrors: jldwbo / JLD / Pipelines / Builds / SSDT_Upgrade + SQL
+# Agent pool: WBO
+
+trigger:
+  branches:
+    include:
+      - release/2019/*
+      - SSDT_upgrade
+      - master
+
+pool:
+  name: WBO
+
+variables:
+  BuildConfiguration: Release
+
+name: Auto-$(Date:yyMMdd)-SQL.$(Rev:.r)
+
+stages:
+
+  # ──────────────────────────────────────────────
+  # STAGE 1 — Build SSDT Projects (.dacpac)
+  # ──────────────────────────────────────────────
+  - stage: BuildSSDP
+    displayName: Build SSDT / SQL Projects
+    jobs:
+      - job: SSDTBuild
+        displayName: Build DACPAC files
+        steps:
+          - checkout: self
+            fetchDepth: 0
+
+          - task: VSBuild@1
+            displayName: Build SSDT solution
+            inputs:
+              solution: '**/*.sln'
+              platform: 'Any CPU'
+              configuration: $(BuildConfiguration)
+              msbuildArgs: '/p:DeployOnBuild=false'
+
+          - task: CopyFiles@2
+            displayName: Stage DACPAC artifacts
+            inputs:
+              SourceFolder: '$(Build.SourcesDirectory)'
+              Contents: '**\*.dacpac'
+              TargetFolder: '$(Build.ArtifactStagingDirectory)\SQL'
+
+          - task: PublishBuildArtifacts@1
+            displayName: Publish SQL/SSDT artifact
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)\SQL'
+              ArtifactName: SQL
+              publishLocation: Container
+
+  # ──────────────────────────────────────────────
+  # STAGE 2 — SQL Server Master Daily checks
+  # ──────────────────────────────────────────────
+  - stage: SQLMasterDaily
+    displayName: SQL Server Master Daily Validation
+    dependsOn: BuildSSDP
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+    jobs:
+      - job: SQLDailyCheck
+        displayName: SQL Server daily validation
+        steps:
+          - task: PowerShell@2
+            displayName: Run SQL validation scripts
+            inputs:
+              targetType: inline
+              script: |
+                Write-Host "Running daily SQL Server validation..."
+                # Add SqlCmd or SSDT deployment validation here
