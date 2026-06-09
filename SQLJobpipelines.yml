@@ -56,16 +56,23 @@ stages:
               msbuildArgs: '/p:DeployOnBuild=false'
 
           # Run unit tests
-          - task: VSTest@2
-            displayName: Run unit tests
+          - task: VisualStudioTestPlatformInstaller@1
+            displayName: 'Install VsTest Platform'
             inputs:
-              testSelector: testAssemblies
-              testAssemblyVer2: |
-                **\*Test*.dll
-                !**\obj\**
-              configuration: $(BuildConfiguration)
-              codeCoverageEnabled: true
+              packageFeedSelector: 'nugetOrg'
+              versionSelector: 'latestStable'
 
+          - task: VSTest@2
+            displayName: 'Run unit tests'
+            inputs:
+             testSelector: 'testAssemblies'
+             testAssemblyVer2: | 
+               **\*test*.dll 
+               !**\*TestAdapter.dll 
+               !**\obj\**
+             searchFolder: '$(System.DefaultWorkingDirectory)'
+             vsTestVersion: 'toolsInstaller'
+        
           # Copy build artifacts
           - task: CopyFiles@2
             displayName: Copy artifacts to staging
