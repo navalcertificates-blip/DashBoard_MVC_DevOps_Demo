@@ -1,0 +1,277 @@
+# Azure DevOps Multi-Stage Release Pipeline - "Common"
+# Mirrors: jldwbo / JLD / Pipelines / Releases / Common
+# Release naming: OR-N_RC1.x-{YYMMDD}-{BranchCode}.{BuildNum}
+# Stages: Drop  →  JL-SYST  →  JL-SYST2
+# Agent pool: WBO
+#
+# This is a YAML equivalent of the Classic release pipeline.
+# For true Classic pipeline recreation, import release-pipeline-common.json
+
+trigger: none   # Release pipelines are manually triggered or CD-triggered
+
+resources:
+  pipelines:
+    # Artifact: Code  (from the "Code" CI build pipeline)
+    - pipeline: CodeArtifact
+      source: Code              # Name of the CI build pipeline in Azure DevOps
+      branch: release/2019/N
+      trigger:
+        branches:
+          - release/2019/*
+
+    # Artifact: Hiera
+    - pipeline: HieraArtifact
+      source: Hiera
+      branch: master
+
+    # Artifact: Puppet
+    - pipeline: PuppetArtifact
+      source: Puppet
+      branch: master
+
+stages:
+
+  # ══════════════════════════════════════════════════════════
+  # STAGE 1 — Drop
+  # Downloads all artifacts and stages them for deployment.
+  # ══════════════════════════════════════════════════════════
+  - stage: Drop
+    displayName: Drop
+    jobs:
+      - deployment: DropArtifacts
+        displayName: Download & Stage Artifacts
+        pool:
+          name: WBO
+        environment: Drop
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+
+                - download: CodeArtifact
+                  displayName: 'Download artifact: Code'
+                  artifact: Code
+
+                - download: HieraArtifact
+                  displayName: 'Download artifact: Hiera'
+                  artifact: Hiera
+
+                - download: PuppetArtifact
+                  displayName: 'Download artifact: Puppet'
+                  artifact: Puppet
+
+                - task: PowerShell@2
+                  displayName: Verify artifact contents
+                  inputs:
+                    targetType: inline
+                    script: |
+                      Write-Host "=== Code Artifact ==="
+                      Get-ChildItem '$(Pipeline.Workspace)\CodeArtifact\Code' -Recurse | Select-Object FullName
+                      Write-Host "=== Hiera Artifact ==="
+                      Get-ChildItem '$(Pipeline.Workspace)\HieraArtifact\Hiera' -Recurse | Select-Object FullName
+                      Write-Host "=== Puppet Artifact ==="
+                      Get-ChildItem '$(Pipeline.Workspace)\PuppetArtifact\Puppet' -Recurse | Select-Object FullName
+
+                - task: PowerShell@2
+                  displayName: Set release label tag
+                  inputs:
+                    targetType: inline
+                    script: |
+                      Write-Host "Release Label: $(Label)"
+                      Write-Host "##vso[build.updatebuildnumber]$(Label)-$(Get-Date -Format 'yyMMdd')"
+
+  # ══════════════════════════════════════════════════════════
+  # STAGE 2 — JL-SYST (System Test Environment)
+  # Deploys selected applications to the SYST environment.
+  # Each app is gated by its Deploy_app_* variable from the UI.
+  # ══════════════════════════════════════════════════════════
+  - stage: JL_SYST
+    displayName: JL-SYST
+    dependsOn: Drop
+    condition: succeeded()
+    jobs:
+      - deployment: DeployToSYST
+        displayName: Deploy to JL-SYST
+        pool:
+          name: WBO
+        environment: JL-SYST
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+
+                # ── BSS Application ──────────────────────────
+                - task: PowerShell@2
+                  displayName: Deploy BSS
+                  condition: eq(variables['Deploy_app_BSS'], 'yes')
+                  inputs:
+                    targetType: inline
+                    script: |
+                      Write-Host "Deploying BSS application to JL-SYST..."
+
+                # ── CPL Application ──────────────────────────
+                - task: PowerShell@2
+                  displayName: Deploy CPL
+                  condition: eq(variables['Deploy_app_CPL'], 'yes')
+                  inputs:
+                    targetType: inline
+                    script: |
+                      Write-Host "Deploying CPL application to JL-SYST..."
+
+                # ── CPLv2 Application ────────────────────────
+                - task: PowerShell@2
+                  displayName: Deploy CPLv2
+                  condition: eq(variables['Deploy_app_CPLv2'], 'yes')
+                  inputs:
+                    targetType: inline
+                    script: |
+                      Write-Host "Deploying CPLv2 application to JL-SYST..."
+
+                # ── Customer Portal ──────────────────────────
+                - task: PowerShell@2
+                  displayName: Deploy CustomerPortal
+                  condition: eq(variables['Deploy_app_CustomerPortal'], 'yes')
+                  inputs:
+                    targetType: inline
+                    script: |
+                      Write-Host "Deploying Customer Portal to JL-SYST..."
+
+                # ── DBA Issues App ───────────────────────────
+                - task: PowerShell@2
+                  displayName: Deploy DBAIssues
+                  condition: eq(variables['Deploy_app_DBAIssues'], 'yes')
+                  inputs:
+                    targetType: inline
+                    script: |
+                      Write-Host "Deploying DBA Issues app to JL-SYST..."
+
+                # ── DBS Service ──────────────────────────────
+                - task: PowerShell@2
+                  displayName: Deploy dbsservice
+                  condition: eq(variables['Deploy_app_dbsservice'], 'yes')
+                  inputs:
+                    targetType: inline
+                    script: |
+                      Write-Host "Deploying dbsservice to JL-SYST..."
+
+                # ── DBS Web Service ──────────────────────────
+                - task: PowerShell@2
+                  displayName: Deploy dbswebservice
+                  condition: eq(variables['Deploy_app_dbswebservice'], 'yes')
+                  inputs:
+                    targetType: inline
+                    script: |
+                      Write-Host "Deploying dbswebservice to JL-SYST..."
+
+                # ── Email Template ───────────────────────────
+                - task: PowerShell@2
+                  displayName: Deploy EmailTemplate
+                  condition: eq(variables['Deploy_app_EmailTemplate'], 'yes')
+                  inputs:
+                    targetType: inline
+                    script: |
+                      Write-Host "Deploying Email Template app to JL-SYST..."
+
+                # ── Epic Data ────────────────────────────────
+                - task: PowerShell@2
+                  displayName: Deploy EpicData
+                  condition: eq(variables['Deploy_app_EpicData'], 'yes')
+                  inputs:
+                    targetType: inline
+                    script: |
+                      Write-Host "Deploying EpicData to JL-SYST..."
+
+                # ── FindOffer ────────────────────────────────
+                - task: PowerShell@2
+                  displayName: Deploy findoffer
+                  condition: eq(variables['Deploy_app_findoffer'], 'yes')
+                  inputs:
+                    targetType: inline
+                    script: |
+                      Write-Host "Deploying findoffer to JL-SYST..."
+
+                # ── Hiera & Puppet configuration ─────────────
+                - task: PowerShell@2
+                  displayName: Apply Hiera configuration (SYST)
+                  inputs:
+                    targetType: inline
+                    script: |
+                      Write-Host "Applying Hiera data for JL-SYST environment..."
+                      Expand-Archive '$(Pipeline.Workspace)\HieraArtifact\Hiera\hiera-data.zip' -DestinationPath 'C:\Hiera\SYST' -Force
+
+                - task: PowerShell@2
+                  displayName: Apply Puppet manifests (SYST)
+                  inputs:
+                    targetType: inline
+                    script: |
+                      Write-Host "Applying Puppet manifests for JL-SYST environment..."
+                      Expand-Archive '$(Pipeline.Workspace)\PuppetArtifact\Puppet\puppet-manifests.zip' -DestinationPath 'C:\Puppet\SYST' -Force
+
+                # ── Post-deploy smoke test ───────────────────
+                - task: PowerShell@2
+                  displayName: Smoke test JL-SYST
+                  inputs:
+                    targetType: inline
+                    script: |
+                      Write-Host "Running smoke tests on JL-SYST..."
+
+  # ══════════════════════════════════════════════════════════
+  # STAGE 3 — JL-SYST2 (System Test Environment 2)
+  # ══════════════════════════════════════════════════════════
+  - stage: JL_SYST2
+    displayName: JL-SYST2
+    dependsOn: JL_SYST
+    condition: succeeded()
+    jobs:
+      - deployment: DeployToSYST2
+        displayName: Deploy to JL-SYST2
+        pool:
+          name: WBO
+        environment: JL-SYST2
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+
+                - task: PowerShell@2
+                  displayName: Deploy BSS to SYST2
+                  condition: eq(variables['Deploy_app_BSS'], 'yes')
+                  inputs:
+                    targetType: inline
+                    script: Write-Host "Deploying BSS to JL-SYST2..."
+
+                - task: PowerShell@2
+                  displayName: Deploy CPL to SYST2
+                  condition: eq(variables['Deploy_app_CPL'], 'yes')
+                  inputs:
+                    targetType: inline
+                    script: Write-Host "Deploying CPL to JL-SYST2..."
+
+                - task: PowerShell@2
+                  displayName: Deploy CustomerPortal to SYST2
+                  condition: eq(variables['Deploy_app_CustomerPortal'], 'yes')
+                  inputs:
+                    targetType: inline
+                    script: Write-Host "Deploying CustomerPortal to JL-SYST2..."
+
+                - task: PowerShell@2
+                  displayName: Apply Hiera configuration (SYST2)
+                  inputs:
+                    targetType: inline
+                    script: |
+                      Write-Host "Applying Hiera data for JL-SYST2 environment..."
+                      Expand-Archive '$(Pipeline.Workspace)\HieraArtifact\Hiera\hiera-data.zip' -DestinationPath 'C:\Hiera\SYST2' -Force
+
+                - task: PowerShell@2
+                  displayName: Apply Puppet manifests (SYST2)
+                  inputs:
+                    targetType: inline
+                    script: |
+                      Write-Host "Applying Puppet manifests for JL-SYST2 environment..."
+                      Expand-Archive '$(Pipeline.Workspace)\PuppetArtifact\Puppet\puppet-manifests.zip' -DestinationPath 'C:\Puppet\SYST2' -Force
+
+                - task: PowerShell@2
+                  displayName: Smoke test JL-SYST2
+                  inputs:
+                    targetType: inline
+                    script: Write-Host "Running smoke tests on JL-SYST2..."
