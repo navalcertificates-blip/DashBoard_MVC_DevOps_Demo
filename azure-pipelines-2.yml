@@ -23,29 +23,19 @@ stages:
     steps:
     - checkout: self
 
-    - task: UseDotNet@2
-      displayName: Install .NET SDK
+    - task: VSBuild@1
+      displayName: Build with MSBuild
       inputs:
-        packageType: 'sdk'
-        version: '8.x'
-
-    - script: |
-        dotnet restore
-      displayName: Restore
-
-    - script: |
-        dotnet build --configuration $(buildConfiguration) --no-restore
-      displayName: Build
-
-    - script: |
-        dotnet publish $(projectPath) --configuration $(buildConfiguration) --no-restore --output "$(publishDir)"
-      displayName: Publish
+        solution: 'DashBoard_MVC/DashBoard_MVC.csproj'
+        msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=FileSystem /p:publishUrl=$(Build.ArtifactStagingDirectory)\publish /p:DeleteExistingFiles=True'
+        platform: 'Any CPU'
+        configuration: 'Release'    
 
     - task: PublishPipelineArtifact@1
       displayName: Publish Pipeline Artifact
       inputs:
-        targetPath: '$(publishDir)'
-        artifact: '$(artifactName)'
+        targetPath: '$(Build.ArtifactStagingDirectory)\publish'
+        artifact: 'drop'
 
 - stage: Deploy_Dev
   displayName: Deploy to Dev VM IIS
