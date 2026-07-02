@@ -30,17 +30,28 @@ stages:
         command: 'restore'
         restoreSolution: 'DashBoard_MVC.sln'
 
+    # Step 1: Build the solution
     - task: MSBuild@1
-      displayName: Build with MSBuild
+      displayName: Build solution
       inputs:
         solution: 'DashBoard_MVC.sln'
         msbuildLocationMethod: 'location'
         msbuildLocation: "C:\\Program Files (x86)\\Microsoft Visual Studio\\18\\BuildTools\\MSBuild\\Current\\Bin\\MSBuild.exe"
-        msbuildArguments: '/t:WebPublish /p:DeployOnBuild=true /p:WebPublishMethod=FileSystem /p:publishUrl=$(publishDir) /p:DeleteExistingFiles=True'
+        msbuildArguments: '/p:Configuration=$(buildConfiguration) /p:Platform="Any CPU"'
         platform: 'Any CPU'
         configuration: '$(buildConfiguration)'
 
-    # Defensive step to ensure publish folder exists
+    # Step 2: Publish the web project
+    - task: MSBuild@1
+      displayName: Publish web project
+      inputs:
+        solution: 'DashBoard_MVC\DashBoard_MVC.csproj'
+        msbuildLocationMethod: 'location'
+        msbuildLocation: "C:\\Program Files (x86)\\Microsoft Visual Studio\\18\\BuildTools\\MSBuild\\Current\\Bin\\MSBuild.exe"
+        msbuildArguments: '/t:WebPublish /p:Configuration=$(buildConfiguration) /p:Platform="Any CPU" /p:WebPublishMethod=FileSystem /p:publishUrl=$(publishDir) /p:DeleteExistingFiles=True'
+        platform: 'Any CPU'
+        configuration: '$(buildConfiguration)'
+
     - powershell: |
         if (!(Test-Path "$(publishDir)")) {
           New-Item -ItemType Directory -Force -Path "$(publishDir)" | Out-Null
