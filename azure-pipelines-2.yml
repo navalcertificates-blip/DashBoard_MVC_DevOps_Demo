@@ -10,14 +10,17 @@ variables:
   testIisPath: 'C:\Temp\PublishTest'
   devAppPool: 'naval-dev-pool'
   testAppPool: 'naval-test-pool'
+  
 
 stages:
 - stage: Build
-  displayName: Build and Publish Artifact
-  pool:
-   vmImage: 'windows-latest'
+  displayName: Build and Publish Artifact  
   jobs:
-  - job: BuildJob    
+  - job: BuildJob
+    pool:
+      name: buildpool
+      demands:
+      - Agent.Name -equals buildagent    
     steps:
     - checkout: self
     - task: NuGetToolInstaller@1
