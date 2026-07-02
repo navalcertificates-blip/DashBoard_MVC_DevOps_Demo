@@ -15,11 +15,7 @@ stages:
 - stage: Build
   displayName: Build and Publish Artifact
   jobs:
-  - job: BuildJob
-    pool:
-      name: naval-dev-pool
-      demands:
-      - Agent.Name -equals devagent
+  - job: BuildJob    
     steps:
     - checkout: self
     - task: NuGetToolInstaller@1
