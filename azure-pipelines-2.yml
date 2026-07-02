@@ -28,7 +28,8 @@ stages:
     - task: NuGetCommand@2
       displayName: Install required package
       inputs:
-       restoreSolution: '$(solution)'
+       command: 'restore'
+       restoreSolution: 'DashBoard_MVC.sln'
 
     - task: MSBuild@1
       displayName: Build with MSBuild
