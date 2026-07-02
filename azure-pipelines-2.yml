@@ -22,6 +22,12 @@ stages:
       - Agent.Name -equals devagent
     steps:
     - checkout: self
+    - task: NuGetToolInstaller@1
+
+    - task: NuGetCommand@2
+      displayName: Install required package
+      inputs:
+       restoreSolution: '$(solution)'
 
     - task: VSBuild@1
       displayName: Build with MSBuild
