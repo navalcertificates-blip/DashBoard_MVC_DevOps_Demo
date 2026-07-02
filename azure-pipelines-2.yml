@@ -3,14 +3,12 @@ trigger:
 
 variables:
   buildConfiguration: 'Release'
-  projectPath: '**/*.csproj'
   artifactName: 'drop'
   publishDir: '$(Build.ArtifactStagingDirectory)\publish'
   devIisPath: 'C:\Temp\PublishDev'
   testIisPath: 'C:\Temp\PublishTest'
   devAppPool: 'naval-dev-pool'
   testAppPool: 'naval-test-pool'
-  
 
 stages:
 - stage: Build
@@ -23,30 +21,37 @@ stages:
       - Agent.Name -equals buildagent    
     steps:
     - checkout: self
+
     - task: NuGetToolInstaller@1
 
     - task: NuGetCommand@2
-      displayName: Install required package
+      displayName: Restore NuGet packages
       inputs:
-       command: 'restore'
-       restoreSolution: 'DashBoard_MVC.sln'
+        command: 'restore'
+        restoreSolution: 'DashBoard_MVC.sln'
 
     - task: MSBuild@1
       displayName: Build with MSBuild
       inputs:
-       solution: 'DashBoard_MVC.sln'
-       msbuildLocationMethod: 'location'
-       msbuildLocation: "C:\\Program Files (x86)\\Microsoft Visual Studio\\18\\BuildTools\\MSBuild\\Current\\Bin\\MSBuild.exe"
-       msbuildArguments: '/p:DeployOnBuild=true /p:WebPublishMethod=FileSystem /p:publishUrl=$(Build.ArtifactStagingDirectory)\publish /p:DeleteExistingFiles=True'
-       platform: 'Any CPU'
-       configuration: 'Release'
-    
+        solution: 'DashBoard_MVC.sln'
+        msbuildLocationMethod: 'location'
+        msbuildLocation: "C:\\Program Files (x86)\\Microsoft Visual Studio\\18\\BuildTools\\MSBuild\\Current\\Bin\\MSBuild.exe"
+        msbuildArguments: '/t:WebPublish /p:DeployOnBuild=true /p:WebPublishMethod=FileSystem /p:publishUrl=$(publishDir) /p:DeleteExistingFiles=True'
+        platform: 'Any CPU'
+        configuration: '$(buildConfiguration)'
+
+    # Defensive step to ensure publish folder exists
+    - powershell: |
+        if (!(Test-Path "$(publishDir)")) {
+          New-Item -ItemType Directory -Force -Path "$(publishDir)" | Out-Null
+        }
+      displayName: Ensure publish folder exists
 
     - task: PublishPipelineArtifact@1
       displayName: Publish Pipeline Artifact
       inputs:
-        targetPath: '$(Build.ArtifactStagingDirectory)\publish'
-        artifact: 'drop'
+        targetPath: '$(publishDir)'
+        artifact: '$(artifactName)'
 
 - stage: Deploy_Dev
   displayName: Deploy to Dev VM IIS
