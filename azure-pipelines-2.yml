@@ -30,25 +30,14 @@ stages:
         command: 'restore'
         restoreSolution: 'DashBoard_MVC.sln'
 
-    # Step 1: Build the solution
+    # Build + Publish in one step at solution level
     - task: MSBuild@1
-      displayName: Build solution
+      displayName: Build and Publish solution
       inputs:
         solution: 'DashBoard_MVC.sln'
         msbuildLocationMethod: 'location'
         msbuildLocation: "C:\\Program Files (x86)\\Microsoft Visual Studio\\18\\BuildTools\\MSBuild\\Current\\Bin\\MSBuild.exe"
-        msbuildArguments: '/p:Configuration=$(buildConfiguration) /p:Platform="Any CPU"'
-        platform: 'Any CPU'
-        configuration: '$(buildConfiguration)'
-
-    # Step 2: Publish the web project
-    - task: MSBuild@1
-      displayName: Publish web project
-      inputs:
-        solution: 'DashBoard_MVC\DashBoard_MVC.csproj'
-        msbuildLocationMethod: 'location'
-        msbuildLocation: "C:\\Program Files (x86)\\Microsoft Visual Studio\\18\\BuildTools\\MSBuild\\Current\\Bin\\MSBuild.exe"
-        msbuildArguments: '/t:WebPublish /p:Configuration=$(buildConfiguration) /p:Platform="Any CPU" /p:WebPublishMethod=FileSystem /p:publishUrl=$(publishDir) /p:DeleteExistingFiles=True'
+        msbuildArguments: '/t:Build;WebPublish /p:Configuration=$(buildConfiguration) /p:Platform="Any CPU" /p:WebPublishMethod=FileSystem /p:publishUrl=$(publishDir) /p:DeleteExistingFiles=True'
         platform: 'Any CPU'
         configuration: '$(buildConfiguration)'
 
