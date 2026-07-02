@@ -29,11 +29,14 @@ stages:
       inputs:
        restoreSolution: '$(solution)'
 
-    - task: VSBuild@1
+    - task: MSBuild@1
       displayName: Build with MSBuild
       inputs:
         solution: 'DashBoard_MVC/DashBoard_MVC.csproj'
-        msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=FileSystem /p:publishUrl=$(Build.ArtifactStagingDirectory)\publish /p:DeleteExistingFiles=True'
+        msbuildLocationMethod: 'version'
+        msbuildVersion: 'latest'
+        msbuildArchitecture: 'x86'
+        msbuildArguments: '/p:DeployOnBuild=true /p:WebPublishMethod=FileSystem /p:publishUrl=$(Build.ArtifactStagingDirectory)\publish /p:DeleteExistingFiles=True'
         platform: 'Any CPU'
         configuration: 'Release'    
 
