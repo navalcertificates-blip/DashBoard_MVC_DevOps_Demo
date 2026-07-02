@@ -7,8 +7,8 @@ variables:
   publishDir: '$(Build.ArtifactStagingDirectory)\publish'
   devIisPath: 'C:\Temp\PublishDev'
   testIisPath: 'C:\Temp\PublishTest'
-  devAppPool: 'naval-dev-pool'
-  testAppPool: 'naval-test-pool'
+  devAppPool: 'MyTestWeb'
+  testAppPool: 'MyTestWeb'
 
 stages:
 - stage: Build
