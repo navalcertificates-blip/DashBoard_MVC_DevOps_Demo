@@ -34,7 +34,7 @@ stages:
       inputs:
        solution: 'DashBoard_MVC/DashBoard_MVC.csproj'
        msbuildLocationMethod: 'location'
-       msbuildLocation: "C:\\Program Files (x86)\\Microsoft Visual Studio\\18\\BuildTools\\MSBuild\\Current\\Bin\\MSBuild.exe"
+       msbuildLocation: "C:\\Program Files (x86)\\Microsoft Visual Studio\\18\\BuildTools\\MSBuild\\Current\\Bin\\amd64\\MSBuild.exe"
        msbuildArguments: '/p:DeployOnBuild=true /p:WebPublishMethod=FileSystem /p:publishUrl=$(Build.ArtifactStagingDirectory)\publish /p:DeleteExistingFiles=True'
        platform: 'Any CPU'
        configuration: 'Release'
