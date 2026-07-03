@@ -7,8 +7,10 @@ variables:
   publishDir: '$(Build.ArtifactStagingDirectory)\publish'
   devIisPath: 'C:\Temp\PublishDev'
   testIisPath: 'C:\Temp\PublishTest'
+  prodIisPath: 'C:\Temp\PublishTProd'
   devAppPool: 'MyTestWeb'
   testAppPool: 'MyTestWeb'
+  prodAppPool: 'MyWeb'
 
 stages:
 - stage: Build
@@ -130,3 +132,42 @@ stages:
               Import-Module WebAdministration
               Start-WebAppPool -Name "$(testAppPool)"
             displayName: Start Test App Pool
+
+- stage: Deploy_Prod
+  displayName: Deploy to Prod VM IIS
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - deployment: DeployProd
+    displayName: Deploy Prod
+    pool:
+      name: naval-prod-pool
+      demands:
+      - Agent.Name -equals prodagent
+    environment: prod
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: '$(artifactName)'
+
+          - powershell: |
+              Import-Module WebAdministration
+              Stop-WebAppPool -Name "$(prodAppPool)"
+            displayName: Stop Prod App Pool
+
+          - powershell: |
+              $source = "$(Pipeline.Workspace)\$(artifactName)\*"
+              $destination = "$(prodIisPath)"
+              if (!(Test-Path $destination)) {
+                New-Item -ItemType Directory -Path $destination -Force | Out-Null
+              }
+              Remove-Item "$destination\*" -Recurse -Force -ErrorAction SilentlyContinue
+              Copy-Item $source $destination -Recurse -Force
+            displayName: Copy Files to Prod IIS Folder
+
+          - powershell: |
+              Import-Module WebAdministration
+              Start-WebAppPool -Name "$(prodAppPool)"
+            displayName: Start prod App Pool
